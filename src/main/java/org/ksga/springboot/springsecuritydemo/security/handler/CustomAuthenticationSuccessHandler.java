@@ -22,7 +22,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         for (GrantedAuthority auth : authentication.getAuthorities()) {
             if (ERole.ROLE_ADMIN.name().equals(auth.getAuthority())) {
                 response.sendRedirect("/dashboard");
+                return;
             }
         }
+        response.sendRedirect("/");
     }
 }

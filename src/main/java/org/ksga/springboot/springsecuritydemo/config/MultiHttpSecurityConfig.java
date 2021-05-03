@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -23,17 +24,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
-public class MultiHttpSecurityConfig {
+public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapter {
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService);
+    }
 
     @Order(1)
     @Configuration
     @EnableGlobalMethodSecurity(
             prePostEnabled = true
     )
-    public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Autowired
-        UserDetailsServiceImpl userDetailsService;
-
+    public class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
         @Autowired
         private AuthEntryPointJwt unauthorizedHandler;
 
@@ -73,6 +78,7 @@ public class MultiHttpSecurityConfig {
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and()
+                    .antMatcher("/api/**")
                     .authorizeRequests()
                     .antMatchers("/api/auth/**")
                     .permitAll()
@@ -87,15 +93,12 @@ public class MultiHttpSecurityConfig {
 
     @Order(2)
     @Configuration
-    public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
         @Autowired
         private PasswordEncoder passwordEncoder;
 
         @Autowired
         private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-
-        @Autowired
-        private UserDetailsServiceImpl userDetailsService;
 
         @Override
         protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -113,16 +116,17 @@ public class MultiHttpSecurityConfig {
                     .disable()
                     .authorizeRequests()
                     .antMatchers("/").permitAll()
-                    .antMatchers("/login").permitAll()
-                    .antMatchers("/signup").permitAll()
+                    .antMatchers("/auth/login").permitAll()
+                    .antMatchers("/auth/signup").permitAll()
                     .antMatchers("/dashboard/**").hasAuthority("ADMIN")
                     .anyRequest()
                     .authenticated()
                     .and()
                     .formLogin()
-                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+                    .loginPage("/auth/login")
                     .permitAll()
-                    .failureUrl("/login?error=true")
+                    .failureUrl("/auth/login?error=true")
                     .usernameParameter("email")
                     .passwordParameter("password")
                     .successHandler(customAuthenticationSuccessHandler)
@@ -133,6 +137,11 @@ public class MultiHttpSecurityConfig {
                     .logoutSuccessHandler(new CustomLogoutSuccessHandler())
                     .deleteCookies("JSESSIONID")
                     .logoutSuccessUrl("/")
+                    .and()
+                    .rememberMe()
+                    .tokenValiditySeconds(2592000)
+                    .key("thisIsMySecret!")
+                    .rememberMeParameter("remember")
                     .and()
                     .exceptionHandling();
         }

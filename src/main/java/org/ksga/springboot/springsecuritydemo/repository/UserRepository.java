@@ -18,6 +18,7 @@ public interface UserRepository {
 
     @Select("SELECT * FROM users WHERE username = #{username}")
     @Results({
+            @Result(property = "id", column = "id"),
             @Result(property = "roles", column = "id", many = @Many(select = "findAllRolesByUserId"))
     })
     Optional<User> findUserByUsername(String username);
