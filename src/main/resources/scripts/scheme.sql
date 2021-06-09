@@ -22,3 +22,9 @@ CREATE TABLE users_roles
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (role_id) REFERENCES roles (id)
 );
+
+CREATE TABLE articles
+(
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(250) NOT NULL
+);

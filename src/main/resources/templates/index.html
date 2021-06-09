@@ -12,10 +12,10 @@
 </head>
 <body>
 <div sec:authorize="isAuthenticated()">
-    <a class="btn btn-outline-light"
-       th:text="${#authentication.name}"
-       th:href="@{/users/{id}(id=${#authentication.getPrincipal().id})}">
-    </a>
+    This User is <b th:text="${#authentication.name}"></b>
+</div>
+<div sec:authorize="!isAuthenticated()">
+    Not Logged In Yet? Go to <a href="/auth/login">Login</a>
 </div>
 </body>
 </html>

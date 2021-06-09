@@ -1,5 +1,6 @@
 package org.ksga.springboot.springsecuritydemo.config;
 
+import org.ksga.springboot.springsecuritydemo.security.handler.CustomAuthenticationEntryPoint;
 import org.ksga.springboot.springsecuritydemo.security.handler.CustomAuthenticationSuccessHandler;
 import org.ksga.springboot.springsecuritydemo.security.handler.CustomLogoutSuccessHandler;
 import org.ksga.springboot.springsecuritydemo.security.jwt.AuthEntryPointJwt;
@@ -22,6 +23,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @EnableWebSecurity
 public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapter {
@@ -69,6 +76,7 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
         protected void configure(HttpSecurity http) throws Exception {
             http
                     .cors()
+                    .configurationSource(corsConfigurationSource())
                     .and()
                     .csrf()
                     .disable()
@@ -89,6 +97,17 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
 
             http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         }
+
+
+        @Bean
+        CorsConfigurationSource corsConfigurationSource() {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Collections.singletonList("*"));
+            configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "PATCH"));
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", configuration.applyPermitDefaultValues());
+            return source;
+        }
     }
 
     @Order(2)
@@ -100,6 +119,9 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
         @Autowired
         private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
+        @Autowired
+        private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
         @Override
         protected void configure(AuthenticationManagerBuilder auth) throws Exception {
             auth
@@ -110,8 +132,6 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
-                    .cors()
-                    .and()
                     .csrf()
                     .disable()
                     .authorizeRequests()
@@ -143,13 +163,14 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
                     .key("thisIsMySecret!")
                     .rememberMeParameter("remember")
                     .and()
-                    .exceptionHandling();
+                    .exceptionHandling()
+                    .authenticationEntryPoint(customAuthenticationEntryPoint);
         }
 
         @Override
         public void configure(WebSecurity web) throws Exception {
             web.ignoring()
-                    .antMatchers(
+                    .antMatchers("/h2-console/**",
                             "/swagger-ui.html", "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**",
                             "/resources/static/**", "/css/**", "/js/**", "/img/**", "/fonts/**",
                             "/images/**", "/scss/**", "/vendor/**", "/favicon.ico", "/auth/**", "/favicon.png",

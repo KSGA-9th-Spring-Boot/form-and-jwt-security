@@ -11,12 +11,15 @@ import java.util.Date;
 @Mapper(componentModel = "spring")
 public interface ArticleMapper {
 
-    @Mapping(target = "articleDto.createdAt()", expression = "java(dateToString(articleDto.getCreatedAt()))")
+    @Mapping(target = "articleDto.createdAt()", expression = "java(dateToString(article.getCreatedAt()))")
     ArticleDto articleToArticleDto(Article article);
 
     Article articleDtoToArticle(ArticleDto articleDto);
 
     default String dateToString(Date date) {
+        if (date == null) {
+            return null;
+        }
         SimpleDateFormat formatter = new SimpleDateFormat("dd/yyyy");
         return formatter.format(date);
     }

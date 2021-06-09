@@ -4,6 +4,7 @@ import org.ksga.springboot.springsecuritydemo.payload.dto.ArticleDto;
 import org.ksga.springboot.springsecuritydemo.payload.response.Response;
 import org.ksga.springboot.springsecuritydemo.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ public class ArticleRestController {
     @Autowired
     private ArticleService articleService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public Response<ArticleDto> getArticle(@PathVariable Long id) {
         ArticleDto articleDto = articleService.findArticleById(id);
@@ -23,10 +25,5 @@ public class ArticleRestController {
                 .<ArticleDto>ok()
                 .setPayload(articleDto);
     }
-
-//    @PostMapping("/create")
-//    public Response<ArticleDto> createArticle(ArticleDto articleDto) {
-//
-//    }
 
 }

@@ -14,6 +14,6 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler im
     public void onLogoutSuccess(HttpServletRequest request,
                                 HttpServletResponse response,
                                 Authentication authentication) throws IOException, ServletException {
-        super.onLogoutSuccess(request, response, authentication);
+        response.sendRedirect("/");
     }
 }
