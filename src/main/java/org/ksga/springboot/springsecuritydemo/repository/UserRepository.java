@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.ksga.springboot.springsecuritydemo.model.auth.FacebookUser;
 import org.ksga.springboot.springsecuritydemo.model.auth.Role;
 import org.ksga.springboot.springsecuritydemo.model.auth.User;
 
@@ -44,8 +45,18 @@ public interface UserRepository {
         return false;
     }
 
+    @Insert("INSERT INTO users (username, password, provider, facebook_id) VALUES (#{username}, #{password}, #{provider}, #{facebookId})")
+    boolean insertFacebookUser(FacebookUser user);
+
     @Select("SELECT CASE WHEN EXISTS " +
             "(SELECT id FROM users WHERE username = #{username}) " +
             "THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END")
     boolean existsByUsername(String username);
+
+    @Select("SELECT * FROM users WHERE facebook_id = #{facebookId}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "roles", column = "id", many = @Many(select = "findAllRolesByUserId"))
+    })
+    Optional<User> findUserByFacebookId(String facebookId);
 }

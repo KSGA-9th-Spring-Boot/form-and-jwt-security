@@ -6,7 +6,9 @@ CREATE TABLE users
 (
     id       INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(250) NOT NULL,
-    password VARCHAR(250) NOT NULL
+    password VARCHAR(250) NOT NULL,
+    provider VARCHAR(250) NOT NULL,
+    facebook_id VARCHAR(250) UNIQUE NULL
 );
 
 CREATE TABLE roles

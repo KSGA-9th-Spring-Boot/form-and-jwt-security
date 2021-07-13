@@ -90,8 +90,6 @@ public class MultiHttpSecurityConfig extends GlobalAuthenticationConfigurerAdapt
                     .authorizeRequests()
                     .antMatchers("/api/auth/**")
                     .permitAll()
-                    .antMatchers("/api/**")
-                    .permitAll()
                     .anyRequest()
                     .authenticated();
 

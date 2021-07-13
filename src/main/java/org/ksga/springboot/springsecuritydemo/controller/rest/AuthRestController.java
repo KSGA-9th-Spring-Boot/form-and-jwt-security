@@ -1,6 +1,7 @@
 package org.ksga.springboot.springsecuritydemo.controller.rest;
 
 import org.ksga.springboot.springsecuritydemo.model.auth.ERole;
+import org.ksga.springboot.springsecuritydemo.model.auth.FacebookUser;
 import org.ksga.springboot.springsecuritydemo.model.auth.Role;
 import org.ksga.springboot.springsecuritydemo.model.auth.User;
 import org.ksga.springboot.springsecuritydemo.payload.request.LoginRequest;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,6 +66,21 @@ public class AuthRestController {
         return Response.<JwtResponse>ok().setPayload(
                 new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername())
         );
+    }
+
+    @PostMapping("/facebook")
+    public String facebookLogin(@RequestBody FacebookUser facebookUser) {
+        Optional<User> user = userRepository.findUserByFacebookId(facebookUser.getFacebookId());
+        if (user.isEmpty()) {
+            facebookUser.setPassword(encoder.encode(facebookUser.getFacebookId()));
+            userRepository.insertFacebookUser(facebookUser);
+        } else {
+            Authentication authentication =
+                    new UsernamePasswordAuthenticationToken(user.get().getUsername(), facebookUser.getFacebookId());
+            authentication = authenticationManager.authenticate(authentication);
+            return jwtUtils.generateJwtToken(authentication);
+        }
+        return null;
     }
 
     @PostMapping("/register")
